@@ -684,3 +684,7 @@ st.caption(
     "Sales Forecasting & Inventory Optimizer | "
     "Machine Learning Portfolio Project"
 )
+
+st.markdown("---")
+st.caption("Developed by Saqlain Zahoor")
+
