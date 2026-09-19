@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
 from pathlib import Path
+from huggingface_hub import hf_hub_download
 
 
 # --------------------------------------------------
@@ -26,7 +27,11 @@ FORECAST_FILE = BASE_DIR / "data" / "processed" / "future_forecast.csv"
 INVENTORY_FILE = BASE_DIR / "data" / "processed" / "inventory_recommendations.csv"
 VALIDATION_FILE = BASE_DIR / "data" / "processed" / "validation_forecast.csv"
 FEATURE_IMPORTANCE_FILE = BASE_DIR / "data" / "processed" / "feature_importance.csv"
-MODEL_FILE = BASE_DIR / "models" / "random_forest_sales_forecaster.joblib"
+
+
+# Hugging Face model information
+HF_REPO_ID = "saqlainzahoorai/sales-forecasting-random-forest"
+HF_MODEL_FILENAME = "random_forest_sales_forecaster.joblib"
 
 
 # --------------------------------------------------
@@ -61,12 +66,18 @@ def load_data():
 
 
 # --------------------------------------------------
-# Load Model
+# Load Model from Hugging Face
 # --------------------------------------------------
 
 @st.cache_resource
 def load_model():
-    return joblib.load(MODEL_FILE)
+
+    model_path = hf_hub_download(
+        repo_id=HF_REPO_ID,
+        filename=HF_MODEL_FILENAME
+    )
+
+    return joblib.load(model_path)
 
 
 model = load_model()
@@ -476,7 +487,6 @@ with col2:
         (validation_df["family"] == selected_family)
     ].copy()
 
-
     if not selected_validation.empty:
 
         selected_actual = selected_validation["sales"]
@@ -485,11 +495,9 @@ with col2:
             "predicted_sales"
         ]
 
-
         selected_mae = (
             selected_actual - selected_predicted
         ).abs().mean()
-
 
         selected_rmse = (
             (
@@ -498,7 +506,6 @@ with col2:
                 ) ** 2
             ).mean()
         ) ** 0.5
-
 
         st.subheader(
             "Selected Store / Product Family"
@@ -570,24 +577,19 @@ if not selected_validation.empty:
         selected_validation["error"].abs()
     )
 
-
     mean_error = (
         selected_validation["error"].mean()
     )
-
 
     mae = (
         selected_validation["absolute_error"].mean()
     )
 
-
     median_absolute_error = (
         selected_validation["absolute_error"].median()
     )
 
-
     col1, col2, col3 = st.columns(3)
-
 
     with col1:
 
@@ -596,14 +598,12 @@ if not selected_validation.empty:
             f"{mean_error:,.2f}"
         )
 
-
     with col2:
 
         st.metric(
             "Mean Absolute Error",
             f"{mae:,.2f}"
         )
-
 
     with col3:
 
@@ -686,5 +686,5 @@ st.caption(
 )
 
 st.markdown("---")
-st.caption("Developed by Saqlain Zahoor")
 
+st.caption("Developed by Saqlain Zahoor")
