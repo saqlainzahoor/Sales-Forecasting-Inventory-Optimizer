@@ -1,5 +1,6 @@
 # Sales Forecasting & Inventory Optimizer
-**Author: Saqlain Zahoor**
+**Author:** Saqlain Zahoor
+
 An end-to-end machine learning project for **demand forecasting, inventory analysis, and data-driven replenishment recommendations**.
 
 The project uses historical retail sales data to forecast future product demand and translate those forecasts into practical inventory decisions.
