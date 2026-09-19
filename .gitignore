@@ -1,33 +1,35 @@
-# Virtual Environment
+# Virtual environment
 .venv/
-venv/
-env/
 
-# Python
+# Python cache
 __pycache__/
 *.py[cod]
-*.pyo
 
 # Jupyter
 .ipynb_checkpoints/
 
-# Data
-data/raw/*
-data/processed/*
+# Raw dataset - keep local only
+data/raw/
 
-# Models
-models/*.joblib
-models/*.pkl
+# Large processed files - keep local only
+data/processed/train_features.csv
+data/processed/validation_forecast.csv
 
-# Environment Variables
+# Generated images
+data/processed/*.png
+
+# Model artifacts - keep local only
+models/
+
+# Environment files
 .env
-
-# Streamlit
 .streamlit/secrets.toml
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
 # VS Code
 .vscode/
+
+models/
