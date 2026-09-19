@@ -1,4 +1,5 @@
 # Sales Forecasting & Inventory Optimizer
+
 **Author:** Saqlain Zahoor
 
 An end-to-end machine learning project for **demand forecasting, inventory analysis, and data-driven replenishment recommendations**.
@@ -9,15 +10,15 @@ The project uses historical retail sales data to forecast future product demand 
 
 ## 📌 Project Overview
 
-Retail businesses need accurate demand forecasts to maintain the right inventory levels.
+Retail businesses need accurate demand forecasts to maintain appropriate inventory levels.
 
 Overstocking can increase holding costs, while understocking can lead to missed sales and poor customer experience.
 
-This project addresses that problem through an end-to-end machine learning pipeline:
+This project addresses this problem through an end-to-end machine learning pipeline:
 
 **Historical Sales → Data Preparation → Feature Engineering → Time-Series Validation → Demand Forecasting → Inventory Optimization → Replenishment Recommendation → Business Dashboard**
 
-The project goes beyond model prediction by connecting the forecast to a practical inventory decision layer.
+The project goes beyond model prediction by connecting demand forecasts with a practical inventory decision layer.
 
 ---
 
@@ -29,7 +30,7 @@ A retail business needs to answer questions such as:
 * Which products may require replenishment?
 * How much inventory should be ordered?
 * How accurately is the forecasting model performing?
-* Which factors contribute most to the model's predictions?
+* Which features contribute most to model predictions?
 * Where are forecasting errors concentrated?
 
 The goal of this project is to build a machine learning system that helps answer these questions using historical sales data.
@@ -41,15 +42,17 @@ The goal of this project is to build a machine learning system that helps answer
 The system combines:
 
 1. Historical sales analysis
-2. Time-based feature engineering
-3. Lag and rolling demand features
-4. Time-series validation
-5. Machine learning demand forecasting
-6. Forecast error analysis
-7. Inventory optimization
-8. Reorder point calculation
-9. Recommended order quantity
-10. Interactive Streamlit dashboard
+2. Data preparation
+3. Time-based feature engineering
+4. Lag and rolling demand features
+5. Chronological time-series validation
+6. Machine learning demand forecasting
+7. Forecast error analysis
+8. Model explainability
+9. Inventory optimization
+10. Reorder point calculation
+11. Recommended order quantity
+12. Interactive Streamlit dashboard
 
 This creates a complete workflow from **prediction to business action**.
 
@@ -79,7 +82,12 @@ The project uses the **Store Sales - Time Series Forecasting** dataset from Kagg
 
 **2017-08-16 → 2017-08-31**
 
-The forecasting horizon contains **16 days** and **28,512 store-product observations**.
+The forecast horizon contains:
+
+* **16 days**
+* **54 stores**
+* **33 product families**
+* **28,512 store-product observations**
 
 ---
 
@@ -103,13 +111,15 @@ The exploratory analysis examined:
 
 The dataset contains a large number of zero-sales observations and a strongly right-skewed sales distribution.
 
-Recent historical demand also showed strong predictive value, particularly through weekly lag and rolling-demand features.
+Recent historical demand showed strong predictive value, particularly through weekly lag and rolling-demand features.
+
+The analysis also showed meaningful differences in demand across stores and product families.
 
 ---
 
 ## 🛠️ Feature Engineering
 
-The forecasting model uses time-based and historical demand features.
+The forecasting model uses time-based, store-level, promotion, lag, and rolling-demand features.
 
 ### Date Features
 
@@ -147,37 +157,33 @@ Rolling features were created using shifted historical demand to reduce the risk
 
 Because this is a forecasting problem, the project does **not** use a random train-test split.
 
-Instead, historical data is divided chronologically.
+Instead, the data is divided chronologically.
 
 ### Training Period
 
-Before:
-
-**2017-07-01**
+**Before 2017-07-01**
 
 ### Validation Period
 
 **2017-07-01 → 2017-08-15**
 
-This approach better represents how the model would operate in a real forecasting environment, where future observations are not available during training.
+This approach better represents a real forecasting environment because future observations are not available during model training.
 
 ---
 
 ## 🤖 Models & Baselines
 
-The project evaluates simple forecasting baselines alongside machine learning models.
+The project evaluates simple historical-demand baselines alongside machine learning models.
 
-### Baseline Models
+### Baseline 1 — 7-Day Lag
 
-#### 7-Day Lag Baseline
+* **MAE:** 88.63
+* **RMSE:** 331.07
 
-* MAE: **88.63**
-* RMSE: **331.07**
+### Baseline 2 — 28-Day Rolling Mean
 
-#### 28-Day Rolling Baseline
-
-* MAE: **105.71**
-* RMSE: **372.01**
+* **MAE:** 105.71
+* **RMSE:** 372.01
 
 ### Machine Learning Models
 
@@ -190,26 +196,32 @@ Random Forest was selected for the final forecasting pipeline based on the valid
 
 ### Final Random Forest Configuration
 
-* Number of trees: **75**
-* Maximum depth: **18**
-* Minimum samples per leaf: **3**
-* Training sample: **500,000 rows**
-* Parallel jobs: **2**
+* **Number of trees:** 75
+* **Maximum depth:** 18
+* **Minimum samples per leaf:** 3
+* **Training sample:** 500,000 rows
+* **Parallel jobs:** 2
+
+The training sample was used as a practical memory-management strategy because the complete dataset is large.
 
 ---
 
 ## 📈 Model Validation Results
 
-The final Random Forest model achieved the following validation results:
+The final Random Forest model achieved the following results on the chronological validation period:
 
 | Metric |     Result |
 | ------ | ---------: |
 | MAE    |  **59.82** |
 | RMSE   | **218.57** |
 
-Validation performance was measured on the chronological validation period.
+The model was evaluated against historical-demand baselines rather than being assessed only in isolation.
 
-The model was also compared against historical-demand baselines rather than being evaluated only in isolation.
+### Validation Interpretation
+
+MAE measures the average absolute forecasting error, while RMSE gives greater weight to larger errors.
+
+Using both metrics provides a broader view of forecasting performance.
 
 ---
 
@@ -247,7 +259,9 @@ The final model generates recursive forecasts for the 16-day forecast horizon.
 * 33 product families
 * 28,512 forecast observations
 
-The forecast is then passed to the inventory optimization layer.
+The forecast is generated recursively, meaning previous predictions are used to construct historical-demand features for subsequent forecast days.
+
+The resulting demand forecast is then passed to the inventory optimization layer.
 
 ---
 
@@ -255,9 +269,9 @@ The forecast is then passed to the inventory optimization layer.
 
 The inventory layer converts demand forecasts into replenishment recommendations.
 
-### Business Assumptions
+Because actual warehouse inventory data is not included in the dataset, the project uses explicit business assumptions.
 
-Because actual warehouse inventory data is not included in the dataset, the project uses explicit assumptions:
+### Business Assumptions
 
 | Parameter     |                        Assumption |
 | ------------- | --------------------------------: |
@@ -267,33 +281,37 @@ Because actual warehouse inventory data is not included in the dataset, the proj
 
 ### Calculation Logic
 
+**Average Daily Demand**
+
+Average predicted demand across the forecast horizon.
+
 **Lead-Time Demand**
 
-Average Daily Demand × Lead Time
+`Average Daily Demand × Lead Time`
 
 **Safety Stock**
 
-Lead-Time Demand × Safety Stock Rate
+`Lead-Time Demand × Safety Stock Rate`
 
 **Reorder Point**
 
-Lead-Time Demand + Safety Stock
+`Lead-Time Demand + Safety Stock`
+
+**Current Stock**
+
+`Average Daily Demand × Current Stock Days`
 
 **Recommended Order Quantity**
 
-Maximum of:
-
-`Reorder Point − Current Stock`
-
-or
-
-`0`
+`max(Reorder Point − Current Stock, 0)`
 
 ### Important Limitation
 
 The current stock value is an **assumption**, not actual company inventory data.
 
-For real-world deployment, this value should be connected to an ERP, warehouse management system, or inventory database.
+For real-world deployment, this value should be connected to an ERP system, warehouse management system, or inventory database.
+
+The same applies to lead time and safety-stock assumptions, which should ideally be based on real operational data.
 
 ---
 
@@ -303,11 +321,13 @@ The system can provide:
 
 * Expected future demand
 * Reorder point
-* Current estimated stock
+* Estimated current stock
 * Stock gap
 * Recommended order quantity
 * Forecasting error
-* Store/product-level model performance
+* Store-level model performance
+* Product-level model performance
+* Model feature importance
 
 This creates a connection between machine learning predictions and operational inventory decisions.
 
@@ -315,9 +335,11 @@ This creates a connection between machine learning predictions and operational i
 
 ## 📊 Streamlit Dashboard
 
-The project includes an interactive Streamlit dashboard with:
+The project includes an interactive Streamlit dashboard designed to connect forecasting results with inventory decisions.
 
 ### Forecast Overview
+
+Displays:
 
 * Average Daily Forecast
 * 16-Day Forecast
@@ -326,7 +348,7 @@ The project includes an interactive Streamlit dashboard with:
 
 ### Demand Forecast
 
-Interactive forecast visualization for the selected:
+Interactive forecast visualization based on the selected:
 
 * Store
 * Product Family
@@ -342,7 +364,7 @@ Displays:
 
 ### Inventory Methodology
 
-Explains:
+The dashboard explains:
 
 * Lead Time
 * Safety Stock
@@ -418,11 +440,12 @@ Sales-Forecasting-Inventory-Optimizer/
 │   └── app.py
 │
 ├── data/
-│   ├── raw/
 │   └── processed/
-│
-├── models/
-│   └── random_forest_sales_forecaster.joblib
+│       ├── future_forecast.csv
+│       ├── inventory_recommendations.csv
+│       ├── feature_importance.csv
+│       ├── error_analysis.csv
+│       └── validation_forecast.csv
 │
 ├── notebooks/
 │
@@ -439,6 +462,18 @@ Sales-Forecasting-Inventory-Optimizer/
 └── requirements.txt
 ```
 
+### Model Storage
+
+The trained Random Forest model is **not stored directly in the GitHub repository** because of GitHub's file-size limitation.
+
+Instead, the model is hosted in a dedicated Hugging Face model repository and downloaded by the Streamlit application at runtime.
+
+**Hugging Face Model Repository:**
+
+`saqlainzahoorai/sales-forecasting-random-forest`
+
+This approach keeps the GitHub repository lightweight while allowing the deployed application to load the trained model when required.
+
 ---
 
 ## ⚙️ Technologies Used
@@ -451,6 +486,7 @@ Sales-Forecasting-Inventory-Optimizer/
 * Scikit-learn
 * Joblib
 * Streamlit
+* Hugging Face Hub
 * Kaggle Dataset
 * Git
 * GitHub
@@ -459,31 +495,31 @@ Sales-Forecasting-Inventory-Optimizer/
 
 ## 🚀 Installation
 
-Clone the repository:
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/saqlainzahoor/Sales-Forecasting-Inventory-Optimizer.git
 ```
 
-Move into the project directory:
+### 2. Move Into the Project Directory
 
 ```bash
 cd Sales-Forecasting-Inventory-Optimizer
 ```
 
-Create a virtual environment:
+### 3. Create a Virtual Environment
 
 ```bash
 python -m venv .venv
 ```
 
-Activate the environment on Windows PowerShell:
+### 4. Activate the Environment on Windows PowerShell
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+### 5. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -503,17 +539,31 @@ The dashboard will open in your browser.
 
 ---
 
+## 🌐 Live Demo
+
+The project is deployed using Streamlit Community Cloud.
+
+**Live Application:**
+
+https://sales-forecasting-inventory-optimizer.streamlit.app/
+
+---
+
 ## 🧪 Model Evaluation
 
 The project evaluates forecasting performance using:
 
-### MAE
+### MAE — Mean Absolute Error
 
-Mean Absolute Error measures the average absolute difference between actual and predicted demand.
+MAE measures the average absolute difference between actual and predicted demand.
 
-### RMSE
+Lower MAE indicates smaller average forecasting errors.
 
-Root Mean Squared Error gives greater weight to larger prediction errors.
+### RMSE — Root Mean Squared Error
+
+RMSE gives greater weight to larger prediction errors.
+
+Lower RMSE indicates fewer large forecasting errors.
 
 Both metrics are used to provide a broader view of forecasting performance.
 
@@ -531,6 +581,7 @@ This project has several important limitations:
 6. Feature importance should not be interpreted as causal evidence.
 7. Transaction data contains missing observations and should not automatically be treated as zero activity.
 8. The model is trained on historical patterns and may not fully capture unexpected future events.
+9. Inventory recommendations are illustrative because real-time stock, supplier lead times, and service-level requirements are not available.
 
 ---
 
@@ -540,18 +591,19 @@ Potential improvements include:
 
 * XGBoost / LightGBM comparison
 * Advanced time-series models
-* Hyperparameter optimization
+* More extensive hyperparameter optimization
 * Walk-forward validation
 * Prediction intervals
 * Probabilistic forecasting
-* Dynamic safety stock
+* Dynamic safety-stock calculation
 * Service-level-based inventory optimization
 * Actual ERP inventory integration
 * Supplier lead-time integration
 * Automated reorder alerts
 * Multi-location inventory optimization
 * API deployment
-* Cloud-based production deployment
+* Cloud-based production architecture
+* Real-time forecasting pipeline
 
 ---
 
@@ -571,7 +623,9 @@ This project demonstrates practical experience in:
 * Inventory Optimization
 * Business Decision Support
 * Streamlit Dashboard Development
+* Hugging Face Model Deployment
 * Git & GitHub
+* Cloud Deployment
 * End-to-End ML Project Development
 
 ---
@@ -581,3 +635,9 @@ This project demonstrates practical experience in:
 This project was developed as a portfolio project to demonstrate how machine learning can be transformed from a predictive model into a practical business decision-support system.
 
 The focus is not only on forecasting accuracy, but also on connecting predictions with inventory planning and operational decision-making.
+
+The project demonstrates an end-to-end workflow covering:
+
+**Data → Machine Learning → Forecasting → Business Logic → Inventory Recommendation → Interactive Dashboard → Deployment**
+
+---
